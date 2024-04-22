@@ -1,7 +1,9 @@
 package org.example;
 
+import java.util.ArrayDeque;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.SynchronousQueue;
 
 public class SlidingWindowRateLimiter implements RateLimiter{
 
@@ -17,8 +19,10 @@ public class SlidingWindowRateLimiter implements RateLimiter{
     }
 
     @Override
-    public synchronized boolean allowRequest(Request request) {
+    public boolean allowRequest(Request request) {
+//        System.out.println("Thread: " + Thread.currentThread().getName() + " Request: "+request + " queue size: " + slidingWindow.size());
         updateQueue(request.getTimestamp());
+//        System.out.println("Thread: " + Thread.currentThread().getName() + " Request: "+request + " queue size: " + slidingWindow.size());
         if(slidingWindow.size()<numRequests){
             slidingWindow.offer(request.getTimestamp());
             return true;
@@ -27,8 +31,20 @@ public class SlidingWindowRateLimiter implements RateLimiter{
     }
 
     private void updateQueue(long timestamp){
+//        System.out.println("---------ENTER QUEUE---------");
+//        System.out.printf("Timestamp: %d\n", timestamp);
+//        for(long t: slidingWindow){
+//            System.out.printf(" %d ", t);
+//        }
+//        System.out.println();
         while(!slidingWindow.isEmpty() && slidingWindow.peek()<timestamp-timeWindow){
             slidingWindow.poll();
         }
+//        System.out.println("---------EXIT QUEUE---------");
+//        System.out.printf("Timestamp: %d\n", timestamp);
+//        for(long t: slidingWindow){
+//            System.out.printf(" %d ", t);
+//        }
+//        System.out.println();
     }
 }
